@@ -13,7 +13,12 @@ def setup_database():
 
 def main():
     speecher = Speecher(setup_database())
-    speecher.listen()
+
+    try:
+        while True:
+            speecher.listen()
+    except KeyboardInterrupt:
+        return
 
 if(__name__) == "__main__":
     main()

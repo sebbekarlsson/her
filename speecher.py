@@ -28,6 +28,8 @@ class Speecher(object):
                     system('say ' + ans)
                     self.lastmessage = ans
 
+                c.close()
+
     def listen(self):
         if self.lastmessage == None:
             system('say hello')
@@ -37,9 +39,11 @@ class Speecher(object):
                 audio = self.r.listen(source)
 
         try:    
-
-            user_text = self.r.recognize(audio)
+            print('listening...')
+            user_text = self.r.recognize_google(audio)
+            print('You said: {}'.format(user_text))
             my_text = self.answer(user_text.replace("'", ''))
+            print('Robot: {}'.format(my_text))
 
             self.st = False
             system('say ' + my_text)
@@ -48,18 +52,19 @@ class Speecher(object):
 
             self.lastmessage = my_text
             self.st = True
-            self.listen()
-        except LookupError: 
-                system('say ' + 'vad sa du?')
-                self.lastmessage = 'vad sa du?'
-                self.listen()
+        except (LookupError, sr.UnknownValueError):
+                print('Woops, error.... I have to think a little bit...')
+                return
 
     def learn(self, input, output):
+        print('learning...')
         c = self.connection.cursor()
         c.execute('INSERT INTO messages (input, output) VALUES("'+input+'", "'+output+'")')
         self.connection.commit()
+        c.close()
 
     def answer(self, input):
+        print('Trying to find an answer...')
         c = self.connection.cursor()
 
         c.execute("SELECT output FROM messages WHERE input LIKE '%"+input+"%'")
@@ -73,6 +78,7 @@ class Speecher(object):
         
         c.execute("SELECT output FROM messages")
         answers = c.fetchall()
+        c.close()
 
 
         if len(answers) == 0:
